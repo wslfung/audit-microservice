@@ -1,15 +1,5 @@
 # Audit Microservice
 
-## Environment Setup
-
-### Environment Variables
-
-The application uses environment variables for configuration. You can set these variables in several ways:
-
-1. Using a `.env` file (recommended for local development)
-2. Using Docker environment variables
-3. Using Kubernetes secrets (for production)
-
 ### Required Environment Variables
 
 The following environment variables are required:
@@ -45,6 +35,4 @@ AUDIT_SERVICE_POSTGRES_DRIVER=org.postgresql.Driver
 
 ### Security Note
 
-Sensitive information such as passwords and private keys should never be committed to version control. Use appropriate secrets management tools for production environments.
-
-for simplicity
+for simplicity, I've included the private key and certificate files in the repository. In a production environment, you should use appropriate secrets management tools, I've also disabled saml authentication as I don't have an idp for validation.
