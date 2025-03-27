@@ -36,3 +36,13 @@ AUDIT_SERVICE_POSTGRES_DRIVER=org.postgresql.Driver
 ### Security Note
 
 for simplicity, I've included the some passwords in the repository. In a production environment, one should use appropriate secrets management tools, I've also disabled saml authentication as I don't have an idp for validation.
+
+### Running the Application
+
+To run the application, 
+- run the postgres container, create the tables in tables.postgres.sql
+- run the mongodb container, create the audit database and log_messages collection, log_archive collection
+- then run the rest of the application
+- to insert logs, you can use cli to insert messages into kafka topic `changelog`, sample-log-messages-array.json has some sample messages you can use
+- to call the api localhost:8080/api/log-messages, you'll need to use SAML <auth token> in the GET Authorization request header.  Samples are in sample-saml-tokens.txt
+
