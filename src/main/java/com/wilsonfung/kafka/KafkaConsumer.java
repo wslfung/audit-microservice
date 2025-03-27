@@ -10,6 +10,7 @@ import com.wilsonfung.service.AuditLogService;
 import java.util.Date;
 import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +41,8 @@ public class KafkaConsumer {
             logMessage.setTimestamp(new Date(timestamp));
             logMessage.setInstance((String) messageMap.get("instance"));
             logMessage.setApplication((String) messageMap.get("application"));
-            logMessage.setAdditionalInformation((String) messageMap.get("additionalInformation"));
+            JsonNode jsonNode = objectMapper.readTree((String) messageMap.get("additionalInformation"));  //make sure the additional information string can be parsed as Json before ingesting
+            logMessage.setAdditionalInformation(jsonNode.toString());
             logMessage.setUserId((String) messageMap.get("userId"));
             
             // Generate signature

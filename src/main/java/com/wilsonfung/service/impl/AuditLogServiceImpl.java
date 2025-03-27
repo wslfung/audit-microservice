@@ -1,8 +1,11 @@
 package com.wilsonfung.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wilsonfung.model.LogMessage;
 import com.wilsonfung.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
+
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -20,6 +23,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     
     private static final Logger log = LoggerFactory.getLogger(AuditLogServiceImpl.class);
     private final MongoTemplate mongoTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void logMessage(LogMessage logMessage) {
@@ -28,7 +32,6 @@ public class AuditLogServiceImpl implements AuditLogService {
         query.addCriteria(Criteria.where("userId").is(logMessage.getUserId()))
               .addCriteria(Criteria.where("timestamp").is(logMessage.getTimestamp()))
               .addCriteria(Criteria.where("instance").is(logMessage.getInstance()))
-              .addCriteria(Criteria.where("application").is(logMessage.getApplication()))
               .addCriteria(Criteria.where("message").is(logMessage.getMessage()));
 
         // Check if document already exists
@@ -37,8 +40,21 @@ public class AuditLogServiceImpl implements AuditLogService {
             return;
         }
 
+        // Parse additionalInformation JSON string into a JSON structure
+        Document additionalInfoDocument = logMessage.getAdditionalInformation() != null
+            ? Document.parse(logMessage.getAdditionalInformation())
+            : new Document();
+
         // Save new document
-        mongoTemplate.save(logMessage, "log_messages");
+        Document document = new Document()
+            .append("message", logMessage.getMessage())
+            .append("timestamp", logMessage.getTimestamp())
+            .append("instance", logMessage.getInstance())
+            .append("application", logMessage.getApplication())
+            .append("additionalInformation", additionalInfoDocument)
+            .append("userId", logMessage.getUserId())
+            .append("signature", logMessage.getSignature());
+        mongoTemplate.save(document, "log_messages");
         log.info("New log message saved successfully");
     }
 
