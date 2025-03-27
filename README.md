@@ -35,4 +35,4 @@ AUDIT_SERVICE_POSTGRES_DRIVER=org.postgresql.Driver
 
 ### Security Note
 
-for simplicity, I've included the private key and certificate files in the repository. In a production environment, one should use appropriate secrets management tools, I've also disabled saml authentication as I don't have an idp for validation.
+for simplicity, I've included the some passwords in the repository. In a production environment, one should use appropriate secrets management tools, I've also disabled saml authentication as I don't have an idp for validation.
