@@ -12,9 +12,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -39,22 +38,9 @@ public class AuditLogServiceImpl implements AuditLogService {
             log.info("Duplicate log message detected - not saving. Message: {}", logMessage.getMessage());
             return;
         }
-
-        // Parse additionalInformation JSON string into a JSON structure
-        Document additionalInfoDocument = logMessage.getAdditionalInformation() != null
-            ? Document.parse(logMessage.getAdditionalInformation())
-            : new Document();
-
         // Save new document
-        Document document = new Document()
-            .append("message", logMessage.getMessage())
-            .append("timestamp", logMessage.getTimestamp())
-            .append("instance", logMessage.getInstance())
-            .append("application", logMessage.getApplication())
-            .append("additionalInformation", additionalInfoDocument)
-            .append("userId", logMessage.getUserId())
-            .append("signature", logMessage.getSignature());
-        mongoTemplate.save(document, "log_messages");
+        Document document = convertLogMessageToDocument(logMessage);
+        mongoTemplate.insert(document, "log_messages");
         log.info("New log message saved successfully");
     }
 
@@ -62,8 +48,9 @@ public class AuditLogServiceImpl implements AuditLogService {
     public void archiveOldMessages(int daysOld) {
         try {
             // Calculate the cutoff timestamp (daysOld days ago)
-            OffsetDateTime cutoffTime = OffsetDateTime.now(ZoneOffset.UTC)
-                .minus(daysOld, ChronoUnit.DAYS);
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_MONTH, -daysOld);
+            Date cutoffTime = calendar.getTime();
 
             // Create query to find old messages
             Query query = new Query();
@@ -79,7 +66,8 @@ public class AuditLogServiceImpl implements AuditLogService {
                 
                 // Insert into archive collection
                 for (LogMessage message : oldMessages) {
-                    mongoTemplate.insert(message, "log_archive");
+                    Document document = convertLogMessageToDocument(message);
+                    mongoTemplate.save(document, "log_archive");
                 }
                 log.info("Successfully archived {} messages", oldMessages.size());
 
@@ -109,4 +97,20 @@ public class AuditLogServiceImpl implements AuditLogService {
         
         return mongoTemplate.find(query, LogMessage.class, "log_messages");
     }
+
+    protected Document convertLogMessageToDocument(LogMessage logMessage) {
+        Document additionalInfoDocument = logMessage.getAdditionalInformation() != null
+            ? Document.parse(logMessage.getAdditionalInformation())
+            : new Document();
+
+        return new Document()
+            .append("message", logMessage.getMessage())
+            .append("timestamp", logMessage.getTimestamp())
+            .append("instance", logMessage.getInstance())
+            .append("application", logMessage.getApplication())
+            .append("additionalInformation", additionalInfoDocument)
+            .append("userId", logMessage.getUserId())
+            .append("signature", logMessage.getSignature());
+    }
+
 }
