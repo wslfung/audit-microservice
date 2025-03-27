@@ -1,0 +1,11 @@
+.git
+.gitignore
+.idea
+*.iml
+target/*
+!target/audit-service-*.war
+README.md
+docker-compose.yml
+Dockerfile
+sample-log-messages-array.json
+sample-saml-tokens.txt

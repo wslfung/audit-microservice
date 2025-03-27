@@ -1,0 +1,62 @@
+server:
+  port: ${AUDIT_SERVICE_SERVER_PORT:8080}
+
+spring:
+  # security:
+  #   saml2:
+  #     relyingparty:
+  #       registration:
+  #         default:
+  #           signing:
+  #             credentials:
+  #               - private-key-location: "${AUDIT_SERVICE_SAML_PRIVATE_KEY_LOCATION:classpath:saml/private.key}"
+  #                 certificate-location: "${AUDIT_SERVICE_SAML_CERTIFICATE_LOCATION:classpath:saml/public.crt}"
+  #           assertingparty:
+  #             metadata-uri: ${AUDIT_SERVICE_SAML_METADATA_URI:http://localhost:8080/saml/metadata}
+  #             entity-id: ${AUDIT_SERVICE_SAML_ENTITY_ID:http://localhost:8080/saml}
+  kafka:
+    bootstrap-servers: ${AUDIT_SERVICE_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: ${AUDIT_SERVICE_KAFKA_GROUP_ID:auditor-group}
+      auto-offset-reset: ${AUDIT_SERVICE_KAFKA_AUTO_OFFSET_RESET:earliest}
+      key-deserializer: ${AUDIT_SERVICE_KAFKA_KEY_DESERIALIZER:org.apache.kafka.common.serialization.StringDeserializer}
+      value-deserializer: ${AUDIT_SERVICE_KAFKA_VALUE_DESERIALIZER:org.apache.kafka.common.serialization.StringDeserializer}
+  data:
+    mongodb:
+      host: ${AUDIT_SERVICE_MONGODB_HOST:mongodb}
+      port: ${AUDIT_SERVICE_MONGODB_PORT:27017}
+      database: ${AUDIT_SERVICE_MONGODB_DATABASE:audit}
+
+  datasource:
+    url: ${AUDIT_SERVICE_POSTGRES_URL:jdbc:postgresql://postgres:5432/audit_quartz}
+    username: ${AUDIT_SERVICE_POSTGRES_USERNAME:postgres}
+    password: ${AUDIT_SERVICE_POSTGRES_PASSWORD:postgres}
+    driver-class-name: ${AUDIT_SERVICE_POSTGRES_DRIVER:org.postgresql.Driver}
+
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+    properties:
+      org.quartz.scheduler.instanceName: PostgresScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.threadPool.class: org.quartz.simpl.SimpleThreadPool
+      org.quartz.threadPool.threadCount: 5
+      org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.useProperties: false
+      org.quartz.jobStore.dataSource: quartzDS
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.clusterCheckinInterval: 20000
+      org.quartz.dataSource.quartzDS.provider: hikaricp
+      org.quartz.dataSource.quartzDS.driver: ${AUDIT_SERVICE_POSTGRES_DRIVER:org.postgresql.Driver}
+      org.quartz.dataSource.quartzDS.URL: ${AUDIT_SERVICE_POSTGRES_URL:jdbc:postgresql://postgres:5432/audit_quartz}
+      org.quartz.dataSource.quartzDS.user: ${AUDIT_SERVICE_POSTGRES_USERNAME:postgres}
+      org.quartz.dataSource.quartzDS.password: ${AUDIT_SERVICE_POSTGRES_PASSWORD:postgres}
+      org.quartz.dataSource.quartzDS.maxConnections: 5
+
+  audit:
+    log:
+      archive:
+        days-to-keep: ${AUDIT_LOG_ARCHIVE_DAYS_TO_KEEP:30}  # Number of days to keep log messages before archiving
