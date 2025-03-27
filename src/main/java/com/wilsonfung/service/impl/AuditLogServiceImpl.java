@@ -1,6 +1,5 @@
 package com.wilsonfung.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wilsonfung.model.LogMessage;
 import com.wilsonfung.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ public class AuditLogServiceImpl implements AuditLogService {
     
     private static final Logger log = LoggerFactory.getLogger(AuditLogServiceImpl.class);
     private final MongoTemplate mongoTemplate;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void logMessage(LogMessage logMessage) {
